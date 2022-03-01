@@ -7,6 +7,8 @@ use App\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use PhpParser\Node\Stmt\While_;
+use App\Category;
+use App\Tag;
 
 class PostController extends Controller
 {
@@ -33,7 +35,16 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('admin.posts.create');
+
+        $categories = Category::all();
+        $tags = Tag::all();
+
+        $data = [
+            'categories' => $categories,
+            'tags' => $tags
+        ];
+
+        return view('admin.posts.create', $data);
     }
 
     /**
@@ -56,6 +67,12 @@ class PostController extends Controller
         
         $new_post->save();
 
+        // salvo le ralazioni di tags
+       if(isset($form_data['tags'])) {
+            $new_post->tags()->sync($form_data['tags']);
+       }
+
+
         return redirect()->route('admin.posts.show', ['post' => $new_post->id]);
     }
 
@@ -68,7 +85,7 @@ class PostController extends Controller
     public function show($id)
     {
         $post = Post::findOrFail($id);
-       
+
         $data = [
             'post' => $post
         ];
@@ -85,9 +102,13 @@ class PostController extends Controller
     public function edit($id)
     {
         $post = Post::findOrFail($id);
+        $categories = Category::all();
+        $tags = Tag::all();
 
         $data = [
-            'post' => $post
+            'post' => $post,
+            'categories' => $categories,
+            'tags' => $tags
         ];
 
         return view('admin.posts.edit', $data);
@@ -116,8 +137,14 @@ class PostController extends Controller
 
         }
 
-        
         $post->update($form_data);
+
+        // se non esistono tags in form data significa che sono stati rimosse tutte le spunte dall'utente
+        if(isset($form_data['tags'])) {
+            $post->tags()->sync($form_data['tags']);
+        } else {
+            $post->tags()->sync([]);
+        }
 
         return redirect()->route('admin.posts.show', ['post' => $post->id]);
     }
@@ -132,6 +159,8 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
+        $post->tags()->sync([]);
+
         $post->delete();
 
         return redirect()->route('admin.posts.index');
@@ -143,7 +172,9 @@ class PostController extends Controller
     protected function getValidate() {
         return [
             'title' => 'required|max:255',
-            'content' => 'required|max:60000'
+            'content' => 'required|max:60000',
+            'category_id' => 'exists:categories,id',
+            'tags' => 'exists:tags,id'
         ];
     }
 

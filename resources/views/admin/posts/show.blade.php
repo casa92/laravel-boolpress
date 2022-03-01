@@ -4,12 +4,32 @@
     <h1>
         {{ $post->title }}
     </h1>
-
+    
+    {{-- slug --}}
     <div class="mb-2">
         <strong>
             Slug:
             {{ $post->slug }}
         </strong>
+    </div>
+
+    {{-- categoria --}}
+    <div class="mb-2">
+        <strong>
+            Category:
+        </strong>
+        {{ $post->category ? $post->category->name : 'nessuna' }}
+        
+    </div>
+
+    {{-- categoria --}}
+    <div class="mb-2">
+        <strong>Tags:</strong>
+        @forelse ($post->tags as $tag)
+            {{ $tag->name }}{{ $loop->last ? '' : ',' }}
+        @empty
+            nessuno
+        @endforelse
     </div>
 
     <p>

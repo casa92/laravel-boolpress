@@ -10,9 +10,11 @@ class Post extends Model
     protected $fillable = [
         'title',
         'content',
-        'slug'
+        'slug',
+        'category_id'
     ];
-    // logiga relativa al database
+
+    // logica relativa al database
     // crea slug unico con finale progressivo (-1,-2,-3,..)
     public static function getUniqueSlug($title) {
         $slug = Str::slug($title);
@@ -30,6 +32,14 @@ class Post extends Model
         return $slug;
     }
 
+    //
+    public function category() {
+        return $this->belongsTo('App\Category');
+    }
 
+    //
+    public function tags() {
+        return $this->belongsToMany('App\Tag');
+    }
     protected $table = 'posts';
 }
